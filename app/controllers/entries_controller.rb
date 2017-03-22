@@ -42,6 +42,10 @@ class EntriesController < ApplicationController
       @entry.linked_entry = linked_entry
     end
 
+    if !entry_params_valid?
+      render action: "new"
+    end
+
     authorize! :create, @entry
 
     respond_to do |format|
@@ -148,6 +152,18 @@ class EntriesController < ApplicationController
   end
 
   private
+
+  def entry_params_valid?
+    params[:entry][:items_attributes].values.each do |item|
+      if item[:amount]
+        if !item[:amount].gsub(/[,\s+]/, ',' => '.', '\s+' => '') =~ /\A[+]?\d+(\.\d{1,2})?\Z/
+          return false
+        end
+      end
+    end
+
+    return true
+  end
 
   def entry_params
     if params[:entry]
